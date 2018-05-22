@@ -2,56 +2,149 @@ import tensorflow as tf
 import numpy as np
 
 
-weights={}
-biases={}
-
-
 
 
 def create_model(raw_in_sh,output_sh):
 
 
-#### Raw input
+#### input
     raw_input= tf.placeholder(tf.float32,shape=raw_in_sh,name="raw_input")
-    input=tf.reshape(raw_input,shape=(1,raw_in_sh[2],raw_in_sh[3],raw_in_sh[4],1))
+    input=tf.transpose(raw_input,(0,2,3,4,1))
+    target=tf.placeholder(tf.float32,shape=output_sh,name="affins")
+
 
 
 #### NODE c0
-    #Define variables for this layer
-    filter_shape=(1,16,128,128,8)
-    weights["c0"]=tf.Variable(tf.truncated_normal(shape=filter_shape,stddev=.05))
-    biases["c0"]=tf.Variable(tf.random_normal([8]))
-
     #create convolution
-    c0=tf.layers.conv3d(input,                  #input node
+    c0=tf.layers.conv3d(input,                      #input node
                         8,                          #number of filters
                         kernel_size=(16,16,16),     #kernel size
                         strides=[1,1, 1],
                         data_format="channels_last",
-                        padding='SAME'
+                        padding='SAME',
+                        activation=tf.nn.relu
                         )
+#### Node d0
     #create max pool
-    d0=tf.layers.max_pooling3d(input,
-                               pool_size=(16,64,32),
-                               strides=(1,1,1),
+    d0=tf.layers.max_pooling3d(c0,
+                               pool_size=(16,64,64),
+                               strides=(1,2,2),
                                padding="same"
                                 )
-    print(d0.shape)
+#### Node c1
+
+    #create convolution
+    c1=tf.layers.conv3d(d0,                      #input node
+                        32,                          #number of filters
+                        kernel_size=(16,16,16),     #kernel size
+                        strides=[1,1, 1],
+                        data_format="channels_last",
+                        padding='SAME',
+                        activation=tf.nn.relu
+                        )
+#### Node d1
+    #create max pool
+    d1=tf.layers.max_pooling3d(c1,
+                               pool_size=(16,32,32),
+                               strides=(1,2,2),
+                               padding="same"
+                                )
 
 
 
+#### Node c2
 
-    #need to reshape at end so that comparison to loss can be made!
+    #create convolution
+    c2=tf.layers.conv3d(d1,                      #input node
+                        64,                          #number of filters
+                        kernel_size=(16,16,16),     #kernel size
+                        strides=[1,1, 1],
+                        data_format="channels_last",
+                        padding='SAME',
+                        activation=tf.nn.relu
+                        )
+#### Node d2
+    #create max pool
+    d2=tf.layers.max_pooling3d(c2,
+                               pool_size=(16,16,16),
+                               strides=(1,2,2),
+                               padding="same"
+                                )
+
+#### Node c3
+
+    #create convolution
+    c3=tf.layers.conv3d(d2,                      #input node
+                        64,                          #number of filters
+                        kernel_size=(16,16,16),     #kernel size
+                        strides=[1,1, 1],
+                        data_format="channels_last",
+                        padding='SAME',
+                        activation=tf.nn.relu
+                        )
+
+#### Node m0
+
+    u0=tf.keras.layers.UpSampling3D((1,2,2))(d2)
+
+    m0=tf.add(c2,u0)
+
+#### Node mc0
+    mc0=tf.layers.conv3d(m0,
+                         32,
+                         kernel_size=(16, 16, 16),  # kernel size
+                         strides=[1, 1, 1],
+                         data_format="channels_last",
+                         padding='SAME',
+                         activation=tf.nn.relu
+                         )
+#### Node m1
+    u1=tf.keras.layers.UpSampling3D((1,2,2))(mc0)
+
+    m1=tf.add(c1,u1)
+
+#### Node mc1
+    mc1 = tf.layers.conv3d(m1,
+                           8,
+                           kernel_size=(16, 16, 16),  # kernel size
+                           strides=[1, 1, 1],
+                           data_format="channels_last",
+                           padding='SAME',
+                           activation=tf.nn.relu
+                           )
+#### Node m2
+    u2 = tf.keras.layers.UpSampling3D((1, 2, 2))(mc1)
+
+    m2=tf.add(c0,u2)
+
+#### Node mc2
+    mc2 =  tf.layers.conv3d(m2,
+                           3,
+                           kernel_size=(16, 16, 16),  # kernel size
+                           strides=[1, 1, 1],
+                           data_format="channels_last",
+                           padding='SAME',
+                           activation=tf.nn.relu
+                           )
 
 
-    #c0=make_level_conv(raw_input,8,(1, 1, 16, 128, 128))
-    #d0=make_level_pool(c0)
+#### Node out
+    out=tf.transpose(mc2,(0,4,1,2,3))
 
 
+#### LOSS
+    loss=tf.losses.softmax_cross_entropy(target,out)
 
+
+#### OPTIMIZER
+    optimizer=tf.train.GradientDescentOptimizer(learning_rate=.05)
+
+    train=optimizer.minimize(loss)
+
+#### INIT
+    init=tf.global_variables_initializer()
+    return init, optimizer, raw_input, target
 
 
 #data goes in (b,f,z,y,x)
-
-
-create_model((None,1,16,128, 128),(None,3,16, 128, 128))
+#model=create_model((None,1,16,128, 128),(None,3,16, 128, 128))
