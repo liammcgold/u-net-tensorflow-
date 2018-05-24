@@ -13,6 +13,8 @@ affinities=np.load("affinities.npy")
 raw_data=np.asarray(raw_data)
 
 
+
+
 #grab slice from the middle to test repetitively to see how loss decreases
 raw_testing_data=np.zeros((1,1,16,128,128))
 affinities_testing_data=np.zeros((1,3,16,128,128))
@@ -22,16 +24,20 @@ affinities_testing_data[0]=affinities[:,100:116,500:628,500:628]
 
 
 
+iteration=20000
+
+
 
 init, train_op, raw_input, target, loss =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
 
+#from tensorflow.python.tools import inspect_checkpoint as chkp
+
+saver = tf.train.Saver()
 
 with tf.Session() as sess:
-    tf.summary.scalar("loss", loss)
-    train_writer = tf.summary.FileWriter('./logs/1/train ', sess.graph)
-    sess.run(init)
+    saver.restore(sess, "saved/model%i".format(iteration))
+
     n=0
-    saver=tf.train.Saver()
     for i in range(1000000):
         print("Training itteration: ",i)
         raw_data_samp, affinities_samp=rp.random_provider((16,128,128),raw_data,affinities)
@@ -39,19 +45,14 @@ with tf.Session() as sess:
         affin_in=np.zeros((1,3,16,128,128))
         raw_in[0]=raw_data_samp
         affin_in[0]=affinities_samp
-        merge = tf.summary.merge_all()
-        summary, loss_sum, a= sess.run([merge,loss,train_op],feed_dict={raw_input:raw_in,target:affin_in})
+        loss_sum, a= sess.run([loss,train_op],feed_dict={raw_input:raw_in,target:affin_in})
         #print(loss_sum)
-        if(i%10==0):
-            #perform retest of data
+        if (i % 10 == 0):
+            # perform retest of data
             print("TESTING....")
-            loss_sum=sess.run([loss],feed_dict={raw_input:raw_testing_data,target:affinities_testing_data})
-            print("TESTED LOSS= ",loss_sum)
+            loss_sum = sess.run([loss], feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})
+            print("TESTED LOSS= ", loss_sum)
 
-
-        if(i>5):
-            print("added to summary")
-            train_writer.add_summary(summary,loss_sum)
         if (i < 100):
             if (i % 10 == 0):
                 saver.save(sess, "./saved/model{}".format(i))

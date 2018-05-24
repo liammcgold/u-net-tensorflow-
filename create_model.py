@@ -1,5 +1,5 @@
 import tensorflow as tf
-import numpy as np
+
 
 
 
@@ -10,6 +10,7 @@ def create_model(raw_in_sh,output_sh):
 #### input
     raw_input= tf.placeholder(tf.float32,shape=raw_in_sh,name="raw_input")
     input=tf.transpose(raw_input,(0,2,3,4,1))
+    input=tf.layers.batch_normalization(input)
     target=tf.placeholder(tf.float32,shape=output_sh,name="affins")
 
 
@@ -133,17 +134,18 @@ def create_model(raw_in_sh,output_sh):
 
 
 #### LOSS
-    loss=tf.losses.softmax_cross_entropy(target,out)
+    loss=tf.losses.mean_squared_error(target,out)
 
 
 #### OPTIMIZER
-    optimizer=tf.train.GradientDescentOptimizer(learning_rate=.05)
+    optimizer=tf.train.AdamOptimizer(learning_rate=.05)
 
-    train=optimizer.minimize(loss)
+
+    train_op=optimizer.minimize(loss)
 
 #### INIT
     init=tf.global_variables_initializer()
-    return init, optimizer, raw_input, target
+    return init, train_op, raw_input, target, loss
 
 
 #data goes in (b,f,z,y,x)
