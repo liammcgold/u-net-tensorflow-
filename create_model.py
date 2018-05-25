@@ -29,7 +29,7 @@ def create_model(raw_in_sh,output_sh):
     #create max pool
     d0=tf.layers.max_pooling3d(c0,
                                pool_size=(16,64,64),
-                               strides=(1,2,2),
+                               strides=(2,2,2),
                                padding="same"
                                 )
 #### Node c1
@@ -68,7 +68,7 @@ def create_model(raw_in_sh,output_sh):
     #create max pool
     d2=tf.layers.max_pooling3d(c2,
                                pool_size=(16,16,16),
-                               strides=(1,2,2),
+                               strides=(2,2,2),
                                padding="same"
                                 )
 
@@ -86,7 +86,7 @@ def create_model(raw_in_sh,output_sh):
 
 #### Node m0
 
-    u0=tf.keras.layers.UpSampling3D((1,2,2))(d2)
+    u0=tf.keras.layers.UpSampling3D((2,2,2))(d2)
 
     m0=tf.add(c2,u0)
 
@@ -114,7 +114,7 @@ def create_model(raw_in_sh,output_sh):
                            activation=tf.nn.relu
                            )
 #### Node m2
-    u2 = tf.keras.layers.UpSampling3D((1, 2, 2))(mc1)
+    u2 = tf.keras.layers.UpSampling3D((2, 2, 2))(mc1)
 
     m2=tf.add(c0,u2)
 
@@ -131,11 +131,12 @@ def create_model(raw_in_sh,output_sh):
 
 #### Node out
     out=tf.transpose(mc2,(0,4,1,2,3))
-    #out=tf.layers.batch_normalization(out)
+    out=tf.layers.batch_normalization(out)
 
 
 #### LOSS
-    loss=tf.losses.softmax_cross_entropy(target,out)
+    loss=tf.nn.weighted_cross_entropy_with_logits(target,out,10)
+    loss=tf.reduce_sum(loss)
 
 
 #### OPTIMIZER

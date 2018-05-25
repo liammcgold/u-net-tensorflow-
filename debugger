@@ -1,0 +1,36 @@
+import create_model
+import numpy as np
+import h5py
+import tensorflow as tf
+import code
+import tifffile
+
+
+raw_testing_data=np.zeros((1,1,16,128,128))
+affinities_testing_data=np.zeros((1,3,16,128,128))
+
+raw_testing_data[0,0,:,:,0]=1
+
+
+
+
+
+iteration=200
+
+
+
+init, train_op, raw_input, target, loss, out =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
+
+#from tensorflow.python.tools import inspect_checkpoint as chkp
+
+saver = tf.train.Saver()
+
+with tf.Session() as sess:
+    saver.restore(sess, "saved/model%i"% iteration)
+    print("Predicting...")
+    out= sess.run(out, feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})
+
+for i in range(0,15):
+    tifffile.imsave("debug_tiffs/pred/predicted_affins%i"%i,np.asarray(out[0,1,i,:,:],dtype=np.float32))
+    tifffile.imsave("debug_tiffs/act/actual_affins%i"%i,np.asarray(affinities_testing_data[0,1,i,:,:],dtype=np.float32))
+    tifffile.imsave("debug_tiffs/raw/raw%i"%i,np.asarray(raw_testing_data[0,0,i,:,:],dtype=np.float32))
