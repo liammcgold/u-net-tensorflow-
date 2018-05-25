@@ -28,7 +28,7 @@ iteration=20000
 
 
 
-init, train_op, raw_input, target, loss =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
+init, train_op, raw_input, target, loss,out =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
 
 #from tensorflow.python.tools import inspect_checkpoint as chkp
 
@@ -50,12 +50,13 @@ with tf.Session() as sess:
         if (i % 10 == 0):
             # perform retest of data
             print("TESTING....")
-            loss_sum = sess.run([loss], feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})
-            print("TESTED LOSS= ", loss_sum)
-
-        if (i < 100):
-            if (i % 10 == 0):
-                saver.save(sess, "./saved/model{}".format(i))
+            loss_sum = sess.run([loss], feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})[0]
+            if (i > 0):
+                loss_dif_p = 100 * (loss_sum_old - loss_sum) / loss_sum_old
+            print("TESTED LOSS = ", loss_sum)
+            if (i > 0):
+                print("Percent Decrease =", int(loss_dif_p), "%")
+            loss_sum_old = loss_sum
         if(i>=100 and i<1000):
             if (i % 100 == 0):
                 saver.save(sess, "./saved/model{}".format(i))

@@ -131,21 +131,22 @@ def create_model(raw_in_sh,output_sh):
 
 #### Node out
     out=tf.transpose(mc2,(0,4,1,2,3))
+    #out=tf.layers.batch_normalization(out)
 
 
 #### LOSS
-    loss=tf.losses.mean_squared_error(target,out)
+    loss=tf.losses.softmax_cross_entropy(target,out)
 
 
 #### OPTIMIZER
-    optimizer=tf.train.AdamOptimizer(learning_rate=.05)
+    optimizer=tf.train.AdamOptimizer(learning_rate=.005)
 
 
     train_op=optimizer.minimize(loss)
 
 #### INIT
     init=tf.global_variables_initializer()
-    return init, train_op, raw_input, target, loss
+    return init, train_op, raw_input, target, loss, out
 
 
 #data goes in (b,f,z,y,x)
