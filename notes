@@ -1,0 +1,2 @@
+-Batch Normalization on output or input is no good and causes banding
+-learning rate must be VERY low, (0.00005)

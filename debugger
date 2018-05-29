@@ -1,4 +1,4 @@
-import create_model
+import create_model2
 import numpy as np
 import h5py
 import tensorflow as tf
@@ -23,7 +23,7 @@ init, train_op, raw_input, target, loss, out =create_model.create_model((None,1,
 
 #from tensorflow.python.tools import inspect_checkpoint as chkp
 
-saver = tf.train.Saver()
+#ver = tf.train.Saver()
 
 with tf.Session() as sess:
     saver.restore(sess, "saved/model%i"% iteration)

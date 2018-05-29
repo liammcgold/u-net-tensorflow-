@@ -32,7 +32,7 @@ iteration=200
 
 
 
-init, train_op, raw_input, target, loss,out =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
+init, train_op, raw_input, target, loss,out, c2 =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
 
 #from tensorflow.python.tools import inspect_checkpoint as chkp
 
@@ -77,7 +77,7 @@ with tf.Session() as sess:
         if (i % 10 == 0):
 
             print("Getting Output...")
-            pred = sess.run(out, feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})
+            pred, targ= sess.run([out,target], feed_dict={raw_input: raw_testing_data, target: affinities_testing_data})
 
             # test for bad convergence
             if (n > 2):
@@ -88,7 +88,7 @@ with tf.Session() as sess:
                 tifffile.imsave("tiffs/pred/predicted_affins%i" % i,
                                 np.asarray(pred[0, 1, i, :, :], dtype=np.float32))
                 tifffile.imsave("tiffs/act/actual_affins%i" % i,
-                                np.asarray(affinities_testing_data[0, 1, i, :, :], dtype=np.float32))
+                                np.asarray(targ[0, 1, i, :, :], dtype=np.float32))
                 tifffile.imsave("tiffs/raw/raw%i"%i,
                                 np.asarray(raw_testing_data[0, 0, i, :, :], dtype=np.float32))
             print("Saved Output, Raw and Affins as Tiffs")

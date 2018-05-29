@@ -28,7 +28,7 @@ iteration=20000
 
 
 
-init, train_op, raw_input, target, loss, out =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
+init, train_op, raw_input, target, loss, out, c2 =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
 
 #from tensorflow.python.tools import inspect_checkpoint as chkp
 
