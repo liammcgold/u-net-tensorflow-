@@ -1,2 +1,3 @@
 -Batch Normalization on output or input is no good and causes banding
 -learning rate must be VERY low, (0.00005)
+-affinites are in (up (positive z), right (x), forward (y))

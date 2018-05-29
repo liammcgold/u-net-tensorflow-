@@ -1,0 +1,63 @@
+import numpy as np
+import rotate as r
+import mirror as m
+import drop_slice as d
+import affinities as a
+import h5py
+import sys
+
+
+
+
+#CREATE DATA
+###############################################################################################
+
+raw_dummy=np.zeros((16,128,128))
+affin_dummy=np.zeros((3,16,128,128))
+
+#check affinity graph works
+f = h5py.File("sample_A_20160501.hdf", "r")
+raw_data=f["volumes"]["raw"].value
+
+
+
+raw_data=np.asarray(raw_data)
+
+#grab slice from the middle to test repetitively to see how loss decreases
+raw_testing_data=np.zeros((16,128,128))
+affinities_testing_data=a.get_affins(raw_testing_data)
+raw_testing_data=raw_data[100:116,500:628,500:628]
+
+
+
+
+
+#RUN TESTS
+##############################################################################################
+
+functions=[r.rotate,m.mirror,d.drop_slice]
+
+
+#check that sizes work
+for function in functions:
+    raw_temp,affin_temp=function(raw_dummy,affin_dummy)
+    assert np.shape(raw_dummy)==np.shape(raw_temp), "raw sizes do not agree"
+    assert np.shape(affin_dummy)==np.shape(affin_temp), "affin sizes do not agree"
+print("SIZES AGREE")
+
+###AFFINITIES ARE BAD! DO NOT USE YET!!!!!!!
+
+
+#check that affinities were properly translated
+for function in functions:
+    raw_temp, affin_temp = function(raw_testing_data, affinities_testing_data)
+    assert (affin_temp==a.get_affins(raw_temp)).all, "bad affinites"
+print("AFFINITIES AGREE")
+
+
+
+
+
+
+
+
