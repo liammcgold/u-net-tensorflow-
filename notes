@@ -1,3 +1,4 @@
 -Batch Normalization on output or input is no good and causes banding
 -learning rate must be VERY low, (0.00005)
 -affinites are in (up (positive z), right (x), forward (y))
+-d2 instead of c3 is being upsampled and merged, thus c3 is a dead end and wasteful, need to fix this when restarting training 

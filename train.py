@@ -66,6 +66,8 @@ with tf.Session() as sess:
         #########################################
         # Print Visual Output for verification  #
         #########################################
+
+        
         if (i % 10 == 0):
 
             print("Getting Output...")

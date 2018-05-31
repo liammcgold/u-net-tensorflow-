@@ -20,22 +20,21 @@ raw_testing_data[0,0]=raw_data[200:216,200:328,200:328]
 affinities_testing_data[0]=affinities[:,200:216,200:328,200:328]
 
 
-iteration=30000
+
 
 
 init, train_op, raw_input, target, loss,out, c2 =create_model.create_model((None,1,16,128, 128),(None,3,16, 128, 128))
 
 
-saver = tf.train.Saver()
-
 with tf.Session() as sess:
+    tf.summary.scalar("loss", loss)
+    train_writer = tf.summary.FileWriter('./logs/1/train ', sess.graph)
+    sess.run(init)
 
-
-    # grab old data
-    saver.restore(sess, "saved_spirou/model%i" % iteration)
 
 
     n=0
+    saver=tf.train.Saver()
     for i in range(1000000):
         print("Training itteration: ",i)
 
